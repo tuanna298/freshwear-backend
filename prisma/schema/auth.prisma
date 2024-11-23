@@ -1,0 +1,56 @@
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model User {
+  id           String   @id @default(uuid())
+  full_name    String
+  username     String   @unique
+  email        String   @unique
+  dob          DateTime
+  password     String
+  gender       Gender
+  role         Role
+  avatar       String
+  phone_number String   @unique
+  address      String
+  last_login   DateTime
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted    Boolean  @default(false)
+
+  notifications           Notification[]
+  orders                  Order[]
+  password_reset_token    PasswordResetToken?
+  password_reset_token_id Int?
+
+  @@map("user")
+}
+
+model PasswordResetToken {
+  id         Int      @id @default(autoincrement())
+  token      String
+  expires_at DateTime
+  user_id    String   @unique
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("password_reset_token")
+}
+
+model RevokedToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@map("revoked_token")
+}
