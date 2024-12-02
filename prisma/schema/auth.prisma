@@ -9,39 +9,38 @@ enum Gender {
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
+  email        String    @unique
   full_name    String
-  username     String   @unique
-  email        String   @unique
-  dob          DateTime
+  username     String    @unique
+  dob          DateTime?
   password     String
-  gender       Gender
-  role         Role
-  avatar       String
-  phone_number String   @unique
-  address      String
-  last_login   DateTime
+  gender       Gender?
+  role         Role      @default(USER)
+  avatar       String?
+  phone_number String?   @unique
+  address      String?
+  last_login   DateTime?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  deleted    Boolean  @default(false)
 
   notifications           Notification[]
   orders                  Order[]
   password_reset_token    PasswordResetToken?
-  password_reset_token_id Int?
+  password_reset_token_id Int?                @unique
+  reviews                 Review[]
 
   @@map("user")
 }
 
 model PasswordResetToken {
   id         Int      @id @default(autoincrement())
-  token      String
+  token      String   @unique @db.Text
   expires_at DateTime
-  user_id    String   @unique
   created_at DateTime @default(now())
-
-  user User @relation(fields: [user_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
+  user_id    String   @unique
 
   @@map("password_reset_token")
 }

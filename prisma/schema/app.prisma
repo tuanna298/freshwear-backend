@@ -26,6 +26,12 @@ enum PaymentStatus {
   CANCELED
 }
 
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Notification {
   id         Int              @id @default(autoincrement())
   content    String
@@ -60,6 +66,7 @@ model Order {
   histories OrderHistory[]
   details   OrderDetail[]
   payments  Payment[]
+  Review    Review[]
 
   @@index([user_id, status])
   @@map("shop_order")
@@ -185,8 +192,28 @@ model ProductDetail {
   size     Size     @relation(fields: [size_id], references: [id])
   material Material @relation(fields: [material_id], references: [id])
   brand    Brand    @relation(fields: [brand_id], references: [id])
+  reviews  Review[]
 
   @@unique([product_id, color_id, size_id, material_id, brand_id])
   @@index([product_id, color_id, size_id, material_id, brand_id])
   @@map("product_detail")
+}
+
+model Review {
+  id                String       @id @default(uuid())
+  comment           String       @db.Text
+  rating            Int          @default(1)
+  image             String       @db.Text
+  status            ReviewStatus @default(PENDING)
+  product_detail_id Int
+  user_id           String
+  order_id          String
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+
+  product_detail ProductDetail @relation(fields: [product_detail_id], references: [id])
+  user           User          @relation(fields: [user_id], references: [id])
+  order          Order         @relation(fields: [order_id], references: [id])
+
+  @@map("review")
 }
