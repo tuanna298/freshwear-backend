@@ -18,11 +18,13 @@ async function seedAdminUser(tx: Prisma.TransactionClient) {
       username: 'admin',
       full_name: 'Admin',
       password: hashedPassword,
+      role: 'ADMIN',
     },
     create: {
       email: 'admin@gmail.com',
       username: 'admin',
       full_name: 'Admin',
+      role: 'ADMIN',
       password: hashedPassword,
     },
   });

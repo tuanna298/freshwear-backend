@@ -42,4 +42,8 @@ export class CreateUserDto implements Prisma.UserCreateInput {
   @IsString()
   @IsOptional()
   address?: string;
+
+  @IsDateString()
+  @IsOptional()
+  last_login?: string | Date;
 }

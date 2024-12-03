@@ -13,6 +13,9 @@ async function bootstrap() {
       },
     }),
   );
+  app.enableCors({
+    origin: '*', // Allow all origins
+  });
   const logger = new Logger(bootstrap.name);
   const config = app.get(ConfigService);
   const PORT = config.get<number>('PORT', 3000);

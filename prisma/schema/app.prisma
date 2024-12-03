@@ -116,7 +116,7 @@ model Payment {
 }
 
 model Brand {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   name       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -127,7 +127,7 @@ model Brand {
 }
 
 model Color {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   name       String
   code       String
   created_at DateTime @default(now())
@@ -139,7 +139,7 @@ model Color {
 }
 
 model Material {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   name       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -150,7 +150,7 @@ model Material {
 }
 
 model Size {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   name       String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -177,10 +177,10 @@ model Product {
 model ProductDetail {
   id          Int      @id @default(autoincrement())
   product_id  String
-  color_id    Int
-  size_id     Int
-  material_id Int
-  brand_id    Int
+  color_id    String
+  size_id     String
+  material_id String
+  brand_id    String
   price       Float
   image       String
   quantity    Int

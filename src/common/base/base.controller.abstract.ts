@@ -1,4 +1,13 @@
-import { Body, Get, Injectable, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Delete,
+  Get,
+  Injectable,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { BaseQueryDto } from './dtos/base.query.dto';
 import { IBaseService } from './interfaces/base.service.interface';
@@ -71,6 +80,7 @@ export function BaseController<
       await this.baseService.bUpdate(id, dto);
     }
 
+    @Delete(':id')
     async delete(@Param('id') id: string) {
       this.baseService.bDelete({
         where: { id },
