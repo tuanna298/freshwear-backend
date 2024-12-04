@@ -39,7 +39,7 @@ model PasswordResetToken {
   token      String   @unique @db.Text
   expires_at DateTime
   created_at DateTime @default(now())
-  user       User     @relation(fields: [user_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id    String   @unique
 
   @@map("password_reset_token")

@@ -23,7 +23,29 @@ export class ProductController extends BaseController<
   DEFAULT_SORT_FIELD: DefaultSort = {
     updated_at: 'desc',
   };
-  DEFAULT_SELECT: Prisma.ProductSelect<DefaultArgs>;
+  DEFAULT_SELECT: Prisma.ProductSelect<DefaultArgs> = {
+    id: true,
+    code: true,
+    name: true,
+    thumbnail: true,
+    description: true,
+    created_at: true,
+    updated_at: true,
+    details: {
+      select: {
+        id: true,
+        quantity: true,
+        price: true,
+        image: true,
+        brand: true,
+        material: true,
+        color: true,
+        size: true,
+        reviews: true,
+        updated_at: true,
+      },
+    },
+  };
   DEFAULT_EXCLUDE: (keyof Prisma.ProductFieldRefs)[];
 
   constructor(private readonly productService: ProductService) {
