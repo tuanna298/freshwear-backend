@@ -15,6 +15,7 @@ import { SizeModule } from './modules/size/size.module';
 import { UserModule } from './modules/user/user.module';
 import { MailerModule } from './shared/mailer/mailer.module';
 import { PrismaModule } from './shared/prisma/prisma.module';
+import { ProductModule } from './modules/product/product.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PrismaModule } from './shared/prisma/prisma.module';
     AuthModule,
     MailerModule,
     ReviewModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [

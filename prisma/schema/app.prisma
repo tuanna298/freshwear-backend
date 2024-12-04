@@ -164,8 +164,8 @@ model Product {
   id          String   @id @default(uuid())
   code        String
   name        String
-  description String
-  thumbnail   String
+  description String?
+  thumbnail   String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
