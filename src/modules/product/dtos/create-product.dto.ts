@@ -1,7 +1,7 @@
-import { Prisma } from '@prisma/client';
 import { IsObject, IsOptional, IsString } from 'class-validator';
+import { CreateProductDetailDto } from './create-product-detail.dto';
 
-export class CreateProductDto implements Prisma.ProductCreateInput {
+export class CreateProductDto {
   @IsString()
   code: string;
 
@@ -16,7 +16,13 @@ export class CreateProductDto implements Prisma.ProductCreateInput {
   @IsOptional()
   thumbnail?: string;
 
+  @IsString()
+  brand_id: string;
+
+  @IsString()
+  material_id: string;
+
   @IsObject()
   @IsOptional()
-  details?: Prisma.ProductDetailCreateNestedManyWithoutProductInput;
+  details?: CreateProductDetailDto[];
 }

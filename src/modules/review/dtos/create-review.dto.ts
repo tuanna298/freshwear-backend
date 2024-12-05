@@ -21,7 +21,7 @@ export class CreateReviewDto implements Prisma.ReviewCreateWithoutUserInput {
   image: string;
 
   @IsObject()
-  product_detail: Prisma.ProductDetailCreateNestedOneWithoutReviewsInput;
+  product: Prisma.ProductCreateNestedOneWithoutReviewsInput;
 
   @IsObject()
   order: Prisma.OrderCreateNestedOneWithoutReviewInput;
