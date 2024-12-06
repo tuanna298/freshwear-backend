@@ -1,3 +1,4 @@
+import { Public } from '@/decorators/public.decorator';
 import {
   Body,
   Delete,
@@ -26,6 +27,7 @@ export function BaseController<
     abstract DEFAULT_SELECT: Prisma.TypeMap['model'][T]['operations']['findMany']['args']['select'];
     abstract DEFAULT_EXCLUDE: (keyof Prisma.TypeMap['model'][T]['fields'])[];
 
+    @Public()
     @Get()
     async findAll(@Query() query: BaseQueryDto) {
       const whereCondition = this.baseService.bGetWhereCondition(
