@@ -49,7 +49,7 @@ model Notification {
 }
 
 model Order {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   code          String
   user_id       String
   address       String
@@ -58,9 +58,10 @@ model Order {
   email         String
   total_money   Float
   note          String
+  method        PaymentMethod
   status        OrderStatus
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
 
   user      User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
   histories OrderHistory[] @relation("OrderToOrderHistory")

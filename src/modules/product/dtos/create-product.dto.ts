@@ -1,4 +1,5 @@
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CreateProductDetailDto } from './create-product-detail.dto';
 
 export class CreateProductDto {
@@ -22,7 +23,8 @@ export class CreateProductDto {
   @IsString()
   material_id: string;
 
-  @IsObject()
-  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductDetailDto)
   details?: CreateProductDetailDto[];
 }
