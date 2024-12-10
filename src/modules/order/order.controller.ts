@@ -27,7 +27,63 @@ export class OrderController extends BaseController<
   DEFAULT_SORT_FIELD: DefaultSort = {
     updated_at: 'desc',
   };
-  DEFAULT_SELECT: Prisma.OrderSelect<DefaultArgs>;
+  DEFAULT_SELECT: Prisma.OrderSelect<DefaultArgs> = {
+    id: true,
+    code: true,
+    user_id: true,
+    address: true,
+    phone_number: true,
+    receiver_name: true,
+    email: true,
+    total_money: true,
+    note: true,
+    method: true,
+    status: true,
+    created_at: true,
+    updated_at: true,
+    user: true,
+    details: {
+      select: {
+        id: true,
+        product_detail_id: true,
+        order_id: true,
+        quantity: true,
+        price: true,
+        product_detail: {
+          select: {
+            id: true,
+            quantity: true,
+            image: true,
+            product: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                description: true,
+                thumbnail: true,
+                brand: true,
+                material: true,
+              },
+            },
+            color: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            size: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    histories: true,
+    payments: true,
+  };
   DEFAULT_EXCLUDE: (keyof Prisma.OrderFieldRefs)[];
 
   constructor(private readonly orderService: OrderService) {

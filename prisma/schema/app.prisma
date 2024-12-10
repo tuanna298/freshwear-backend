@@ -81,7 +81,8 @@ model OrderDetail {
   price             Float
   total             Float
 
-  order Order @relation("OrderToOrderDetail", fields: [order_id], references: [id], onDelete: Cascade)
+  order          Order         @relation("OrderToOrderDetail", fields: [order_id], references: [id], onDelete: Cascade)
+  product_detail ProductDetail @relation(fields: [product_detail_id], references: [id], onDelete: Cascade)
 
   @@map("order_detail")
 }
@@ -192,9 +193,10 @@ model ProductDetail {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  color   Color   @relation(fields: [color_id], references: [id], onDelete: Cascade)
-  size    Size    @relation(fields: [size_id], references: [id], onDelete: Cascade)
+  product     Product       @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  color       Color         @relation(fields: [color_id], references: [id], onDelete: Cascade)
+  size        Size          @relation(fields: [size_id], references: [id], onDelete: Cascade)
+  OrderDetail OrderDetail[]
 
   @@unique([product_id, color_id, size_id])
   @@index([product_id, color_id, size_id])
