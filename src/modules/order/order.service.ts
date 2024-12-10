@@ -2,6 +2,7 @@ import { BaseService } from '@/common/base/base.service.abstract';
 import { PrismaService } from '@/shared/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { OrderStatus, Prisma, User } from '@prisma/client';
+import { omit } from 'lodash';
 import { CreateOrderDto } from './dtos/create-order.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 
@@ -25,11 +26,17 @@ export class OrderService extends BaseService<
   ): Promise<
     Prisma.TypeMap['model']['Order']['operations']['create']['result'] | null
   > {
+    const total_money = dto.cartItems.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0,
+    );
     const res = await this.prisma.order.create({
       data: {
-        ...dto,
-        user_id: user.id,
+        ...omit(dto, ['cartItems']),
+        code: 'HD-' + Date.now(),
+        user_id: user?.id,
         status: OrderStatus.PENDING,
+        total_money,
         details: {
           create: dto.cartItems,
         },

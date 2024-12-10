@@ -2,6 +2,7 @@ import { BaseController } from '@/common/base/base.controller.abstract';
 import { IBaseService } from '@/common/base/interfaces/base.service.interface';
 import { DefaultSort } from '@/common/base/types';
 import { CurrentUser } from '@/decorators/current-user.decorator';
+import { Public } from '@/decorators/public.decorator';
 import { Body, Controller, Post } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
@@ -34,6 +35,7 @@ export class OrderController extends BaseController<
     this.baseService = this.orderService;
   }
 
+  @Public()
   @Post()
   async create(
     @Body() dto: CreateOrderDto,

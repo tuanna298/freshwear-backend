@@ -51,6 +51,7 @@ export function BaseController<
       );
     }
 
+    @Public()
     @Get('/:id')
     async findById(
       @Param('id') id: string,
