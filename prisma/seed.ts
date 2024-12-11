@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -18,13 +18,13 @@ async function seedAdminUser(tx: Prisma.TransactionClient) {
       username: 'admin',
       full_name: 'Admin',
       password: hashedPassword,
-      role: 'ADMIN',
+      role: Role.ADMIN,
     },
     create: {
       email: 'admin@gmail.com',
       username: 'admin',
       full_name: 'Admin',
-      role: 'ADMIN',
+      role: Role.ADMIN,
       password: hashedPassword,
     },
   });
