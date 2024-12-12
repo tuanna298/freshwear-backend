@@ -1,22 +1,23 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
 import { ResponseMappingInterceptor } from './interceptors/response-mapping.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAccessTokenGuard } from './modules/auth/guards/jwt-access-token.guard';
 import { BrandModule } from './modules/brand/brand.module';
 import { ColorModule } from './modules/color/color.module';
 import { MaterialModule } from './modules/material/material.module';
+import { OrderModule } from './modules/order/order.module';
+import { ProductModule } from './modules/product/product.module';
 import { ReviewModule } from './modules/review/review.module';
 import { SizeModule } from './modules/size/size.module';
 import { UserModule } from './modules/user/user.module';
 import { MailerModule } from './shared/mailer/mailer.module';
 import { PrismaModule } from './shared/prisma/prisma.module';
-import { ProductModule } from './modules/product/product.module';
-import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -39,7 +40,11 @@ import { OrderModule } from './modules/order/order.module';
   controllers: [AppController],
   providers: [
     AppService,
-
+    Logger,
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
     {
       provide: APP_GUARD,
       useClass: JwtAccessTokenGuard,

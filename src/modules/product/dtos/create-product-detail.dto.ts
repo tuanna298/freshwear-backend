@@ -1,23 +1,23 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductDetailDto {
-  @IsString()
+  @IsString({ message: 'ID phải là chuỗi.' })
   @IsOptional()
   id?: string;
 
-  @IsNumber()
+  @IsNumber({}, { message: 'Giá phải là một số.' })
   price: number;
 
-  @IsNumber()
+  @IsNumber({}, { message: 'Số lượng phải là một số.' })
   quantity: number;
 
-  @IsString()
+  @IsString({ message: 'Hình ảnh phải là chuỗi.' })
   @IsOptional()
   image?: string;
 
-  @IsString()
+  @IsString({ message: 'ID màu sắc phải là chuỗi.' })
   color_id: string;
 
-  @IsString()
+  @IsString({ message: 'ID kích cỡ phải là chuỗi.' })
   size_id: string;
 }

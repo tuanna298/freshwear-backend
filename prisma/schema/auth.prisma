@@ -13,7 +13,6 @@ model User {
   email        String    @unique
   full_name    String
   username     String    @unique
-  dob          DateTime?
   password     String
   gender       Gender?
   role         Role      @default(USER)

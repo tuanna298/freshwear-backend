@@ -1,5 +1,6 @@
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { Public } from '@/decorators/public.decorator';
+import { EmailService } from '@/shared/mailer/email.service';
 import {
   Body,
   Controller,
@@ -22,7 +23,10 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly emailService: EmailService,
+  ) {}
 
   // public endpoints
 

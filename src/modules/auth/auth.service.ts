@@ -46,17 +46,13 @@ export class AuthService {
     const { email, username, password } = dto;
 
     const [existingUsername, existingEmail] = await Promise.all([
-      this.userService.bFindFirstExists({
-        args: {
-          where: {
-            username,
-          },
+      this.userService.bFindFirstByConditions({
+        where: {
+          username,
         },
       }),
-      this.userService.bFindFirstExists({
-        args: {
-          where: { email },
-        },
+      this.userService.bFindFirstByConditions({
+        where: { email },
       }),
     ]);
 
@@ -148,6 +144,10 @@ export class AuthService {
     }
 
     const reset_password_token = uuidv4();
+
+    // gửi email
+    await this.sendForgotPasswordEmail(email, reset_password_token);
+
     const hashedToken = crypto
       .createHash('sha256')
       .update(reset_password_token)
@@ -203,7 +203,7 @@ export class AuthService {
       subject: 'Yêu cầu đặt lại mật khẩu',
       template: 'mail-verifications',
       context: {
-        link: `${this.configService.get('RESET_PASSWORD_URL')}?token=${token}`,
+        link: `http://localhost:5174/reset-password?token=${token}`,
       },
     });
   }

@@ -11,35 +11,35 @@ import { CreateOrderDetailDto } from './create-order-detail.dto';
 import { TransactionInfoDto } from './transaction-info.dto';
 
 export class CreateOrderDto {
-  @IsString()
+  @IsString({ message: 'ID phải là chuỗi.' })
   @IsOptional()
   id?: string;
 
-  @IsString()
+  @IsString({ message: 'Tên người nhận phải là chuỗi.' })
   receiver_name: string;
 
-  @IsString()
+  @IsString({ message: 'Email phải là chuỗi.' })
   email: string;
 
-  @IsString()
+  @IsString({ message: 'Địa chỉ phải là chuỗi.' })
   address: string;
 
-  @IsString()
+  @IsString({ message: 'Số điện thoại phải là chuỗi.' })
   phone_number: string;
 
-  @IsString()
+  @IsString({ message: 'Ghi chú phải là chuỗi.' })
   @IsOptional()
   note?: string;
 
-  @ValidateNested({ each: true })
+  @ValidateNested({ each: true, message: 'Thông tin giao dịch không hợp lệ.' })
   @Type(() => TransactionInfoDto)
   transaction_info: TransactionInfoDto;
 
-  @IsEnum(PaymentMethod)
+  @IsEnum(PaymentMethod, { message: 'Phương thức thanh toán không hợp lệ.' })
   method: PaymentMethod;
 
-  @IsArray()
-  @ValidateNested({ each: true })
+  @IsArray({ message: 'Giỏ hàng phải là một mảng.' })
+  @ValidateNested({ each: true, message: 'Chi tiết đơn hàng không hợp lệ.' })
   @Type(() => CreateOrderDetailDto)
   cartItems: CreateOrderDetailDto[];
 }

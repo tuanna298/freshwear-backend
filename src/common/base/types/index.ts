@@ -47,3 +47,17 @@ export type CreatePageInfoParams<T> = {
 };
 
 export type DefaultSort = { [key: string]: 'asc' | 'desc' };
+
+interface ErrorDetail {
+  code: string;
+  message: string;
+  details: string;
+  timestamp: string;
+  path?: string;
+}
+export interface ErrorResponse {
+  status: 'error' | 'success';
+  statusCode: number;
+  error?: ErrorDetail;
+  requestId?: string;
+}
