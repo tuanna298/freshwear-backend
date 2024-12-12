@@ -18,6 +18,9 @@ import { SizeModule } from './modules/size/size.module';
 import { UserModule } from './modules/user/user.module';
 import { MailerModule } from './shared/mailer/mailer.module';
 import { PrismaModule } from './shared/prisma/prisma.module';
+import { VnpayModule } from './shared/vnpay/vnpay.module';
+import { StatisticModule } from './modules/statistic/statistic.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { PrismaModule } from './shared/prisma/prisma.module';
     ReviewModule,
     ProductModule,
     OrderModule,
+    VnpayModule,
+    StatisticModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

@@ -201,7 +201,7 @@ export class AuthService {
     await this.emailService.sendEmail({
       to: email,
       subject: 'Yêu cầu đặt lại mật khẩu',
-      template: 'mail-verifications',
+      template: 'mail-verification',
       context: {
         link: `http://localhost:5174/reset-password?token=${token}`,
       },

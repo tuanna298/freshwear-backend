@@ -1,4 +1,4 @@
-import { PaymentMethod } from '@prisma/client';
+import { OrderStatus, PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -8,7 +8,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreateOrderDetailDto } from './create-order-detail.dto';
-import { TransactionInfoDto } from './transaction-info.dto';
 
 export class CreateOrderDto {
   @IsString({ message: 'ID phải là chuỗi.' })
@@ -31,9 +30,8 @@ export class CreateOrderDto {
   @IsOptional()
   note?: string;
 
-  @ValidateNested({ each: true, message: 'Thông tin giao dịch không hợp lệ.' })
-  @Type(() => TransactionInfoDto)
-  transaction_info: TransactionInfoDto;
+  @IsEnum(OrderStatus, { message: 'Trạng thái hoá đơn không hợp lệ.' })
+  status: OrderStatus;
 
   @IsEnum(PaymentMethod, { message: 'Phương thức thanh toán không hợp lệ.' })
   method: PaymentMethod;

@@ -1,8 +1,19 @@
 import { BaseService } from '@/common/base/base.service.abstract';
+import { OrderStatusLabel } from '@/common/constant';
+import { EmailService } from '@/shared/mailer/email.service';
 import { PrismaService } from '@/shared/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { OrderStatus, PaymentMethod, Prisma, User } from '@prisma/client';
+import {
+  Order,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+  Prisma,
+  User,
+} from '@prisma/client';
 import { omit } from 'lodash';
+import { VnpayService } from 'nestjs-vnpay';
+import { ProductCode } from 'vnpay';
 import { CreateOrderDto } from './dtos/create-order.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 
@@ -12,7 +23,11 @@ export class OrderService extends BaseService<
   CreateOrderDto,
   UpdateOrderDto
 > {
-  constructor(protected prisma: PrismaService) {
+  constructor(
+    protected prisma: PrismaService,
+    private readonly vnpayService: VnpayService,
+    private readonly emailService: EmailService,
+  ) {
     super(prisma, 'Order');
   }
 
@@ -23,9 +38,7 @@ export class OrderService extends BaseService<
       Prisma.TypeMap['model']['Order']['operations']['create']['args'],
       'data'
     >,
-  ): Promise<
-    Prisma.TypeMap['model']['Order']['operations']['create']['result'] | null
-  > {
+  ) {
     const total_money = dto.cartItems.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0,
@@ -47,11 +60,8 @@ export class OrderService extends BaseService<
       ...args,
     });
 
-    const transaction_info = dto.transaction_info;
-
     // handle vnPay
-    // khi transaction_info !== null và dto.method === PaymentMethod.TRANSFER (tức là yêu cầu đầu tiên của khách hàng với pttt là online thì khởi tạo order với thông tin ban đầu và trả về vnPayUrl)
-    if (transaction_info === null && dto.method === PaymentMethod.TRANSFER) {
+    if (dto.method === PaymentMethod.TRANSFER) {
       await this.prisma.orderHistory.create({
         data: {
           order_id: res.id,
@@ -59,9 +69,23 @@ export class OrderService extends BaseService<
           note: 'Chờ thanh toán',
         },
       });
-      // String urlVnPay = vnPayService.createOrder(orderSave.getTotalMoney(), newOrder.getId());
-      // gửi email thông báo cho admin
-      // return urlVnPay;
+      await this.prisma.payment.create({
+        data: {
+          order_id: res.id,
+          description: 'Thanh toán qua VNPAY',
+          method: PaymentMethod.TRANSFER,
+          status: PaymentStatus.PENDING,
+          total: total_money,
+        },
+      });
+      return this.vnpayService.buildPaymentUrl({
+        vnp_Amount: total_money,
+        vnp_OrderInfo: res.code,
+        vnp_TxnRef: Math.floor(Math.random() * 1000000).toString(),
+        vnp_IpAddr: '127.0.0.1',
+        vnp_ReturnUrl: 'http://localhost:3000/vnpay/callback',
+        vnp_OrderType: ProductCode.Other,
+      });
     } else {
       // handle COD
       await this.prisma.orderHistory.create({
@@ -71,11 +95,126 @@ export class OrderService extends BaseService<
           note: 'Chờ xử lý',
         },
       });
-    }
-    // tạo payments
-    // createPayment(newOrder, request);
 
-    // gửi email thông báo cho admin
+      await this.prisma.payment.create({
+        data: {
+          order_id: res.id,
+          description: 'Thanh toán khi nhận hàng',
+          method: PaymentMethod.CASH,
+          status: PaymentStatus.PENDING,
+          total: total_money,
+        },
+      });
+    }
+
+    // gửi noti thông báo cho admin
     return res || null;
+  }
+
+  async updateStatus(id: string, status: OrderStatus, note?: string) {
+    const order = await this.prisma.order.findUniqueOrThrow({
+      where: {
+        id,
+      },
+      include: {
+        details: {
+          include: {
+            product_detail: true,
+          },
+        },
+      },
+    });
+
+    if (
+      order.status === OrderStatus.CANCELED ||
+      order.status === OrderStatus.EXPIRED ||
+      order.status === OrderStatus.COMPLETED ||
+      order.status === status
+    ) {
+      return;
+    }
+
+    await this.prisma.order.update({
+      where: {
+        id,
+      },
+      data: {
+        status,
+      },
+    });
+    await this.prisma.orderHistory.create({
+      data: {
+        order_id: id,
+        action_status: status,
+        note,
+      },
+    });
+    if (status === OrderStatus.CANCELED) {
+      for (const orderDetail of order.details) {
+        await this.prisma.productDetail.update({
+          where: {
+            id: orderDetail.product_detail_id,
+          },
+          data: {
+            quantity: {
+              increment: orderDetail.quantity,
+            },
+          },
+        });
+      }
+    }
+    if (status === OrderStatus.COMPLETED) {
+      await this.prisma.payment.updateMany({
+        where: {
+          order_id: id,
+          status: {
+            not: PaymentStatus.PAID,
+          },
+        },
+        data: {
+          status: PaymentStatus.PAID,
+        },
+      });
+    }
+    // gửi mail thông báo cho user
+    await this.sendMailNotification(order.email, order);
+  }
+
+  async trackingOrder(code: string) {
+    return this.prisma.order.findUniqueOrThrow({
+      where: {
+        code,
+      },
+      include: {
+        details: {
+          include: {
+            product_detail: {
+              include: {
+                product: true,
+                color: true,
+                size: true,
+              },
+            },
+          },
+        },
+        histories: true,
+        payments: true,
+      },
+    });
+  }
+
+  private async sendMailNotification(email: string, order: Order) {
+    await this.emailService.sendEmail({
+      to: email,
+      subject:
+        OrderStatusLabel[order.status] +
+        ' - Đơn hàng ' +
+        order.code +
+        ' đã được cập nhật trạng thái',
+      template: 'mail-notification',
+      context: {
+        link: `http://localhost:5174/tracking-order/${order.code}`,
+      },
+    });
   }
 }

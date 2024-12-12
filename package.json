@@ -37,11 +37,13 @@
     "class-validator": "^0.14.1",
     "handlebars": "^4.7.8",
     "lodash": "^4.17.21",
+    "nestjs-vnpay": "^0.1.0",
     "nodemailer": "^6.9.16",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "vnpay": "^1.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

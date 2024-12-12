@@ -13,6 +13,7 @@ enum OrderStatus {
   COMPLETED
   CANCELED
   EXPIRED
+  PAYMENT_FAILED
 }
 
 enum PaymentMethod {
@@ -50,7 +51,7 @@ model Notification {
 
 model Order {
   id            String        @id @default(uuid())
-  code          String
+  code          String        @unique
   user_id       String?
   address       String
   phone_number  String
@@ -97,6 +98,7 @@ model OrderHistory {
 
   order Order @relation("OrderToOrderHistory", fields: [order_id], references: [id], onDelete: Cascade)
 
+  @@unique([order_id, action_status])
   @@index([order_id, action_status])
   @@map("order_history")
 }
@@ -105,7 +107,7 @@ model Payment {
   id               Int           @id @default(autoincrement())
   order_id         String
   method           PaymentMethod
-  transaction_code String
+  transaction_code String?       @unique
   total            Float
   description      String
   status           PaymentStatus

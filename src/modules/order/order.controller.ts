@@ -3,7 +3,7 @@ import { IBaseService } from '@/common/base/interfaces/base.service.interface';
 import { DefaultSort } from '@/common/base/types';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { Public } from '@/decorators/public.decorator';
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateOrderDto } from './dtos/create-order.dto';
@@ -98,5 +98,18 @@ export class OrderController extends BaseController<
     @CurrentUser() user: User,
   ): Promise<void> {
     await this.orderService.create(dto, user);
+  }
+
+  @Put(':id/update-status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() { status }: Pick<UpdateOrderDto, 'status'>,
+  ): Promise<void> {
+    await this.orderService.bUpdate(id, { status });
+  }
+
+  @Get('/tracking-code/:code')
+  async trackingOrder(@Param('code') code: string) {
+    return this.orderService.trackingOrder(code);
   }
 }
