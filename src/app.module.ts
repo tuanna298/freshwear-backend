@@ -21,6 +21,7 @@ import { PrismaModule } from './shared/prisma/prisma.module';
 import { VnpayModule } from './shared/vnpay/vnpay.module';
 import { StatisticModule } from './modules/statistic/statistic.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { SseModule } from './modules/sse/sse.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     VnpayModule,
     StatisticModule,
     NotificationModule,
+    SseModule,
   ],
   controllers: [AppController],
   providers: [
