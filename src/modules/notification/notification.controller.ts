@@ -40,11 +40,12 @@ export class NotificationController extends BaseController<
     return await this.prisma.notification.updateMany({
       data: { read: true },
     });
-    // return await this.notificationService.readAllNotifications();
   }
 
   @Get('/unread')
   async getUnreadNotifications() {
-    // return await this.notificationService.getUnreadNotifications();
+    return await this.prisma.notification.findMany({
+      where: { read: false },
+    });
   }
 }

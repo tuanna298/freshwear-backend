@@ -16,6 +16,7 @@ import { OrderModule } from './modules/order/order.module';
 import { ProductModule } from './modules/product/product.module';
 import { ReviewModule } from './modules/review/review.module';
 import { SizeModule } from './modules/size/size.module';
+import { SseModule } from './modules/sse/sse.module';
 import { StatisticModule } from './modules/statistic/statistic.module';
 import { UserModule } from './modules/user/user.module';
 import { LoggerModule } from './shared/logger/logger.module';
@@ -44,6 +45,7 @@ import { VnpayModule } from './shared/vnpay/vnpay.module';
     StatisticModule,
     NotificationModule,
     LoggerModule,
+    SseModule,
   ],
   controllers: [AppController],
   providers: [
