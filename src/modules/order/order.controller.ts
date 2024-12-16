@@ -3,6 +3,7 @@ import { BaseQueryDto } from '@/common/base/dtos/base.query.dto';
 import { IBaseService } from '@/common/base/interfaces/base.service.interface';
 import { DefaultSort } from '@/common/base/types';
 import { Public } from '@/decorators/public.decorator';
+import { PrismaService } from '@/shared/prisma/prisma.service';
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
@@ -86,7 +87,10 @@ export class OrderController extends BaseController<
   };
   DEFAULT_EXCLUDE: (keyof Prisma.OrderFieldRefs)[];
 
-  constructor(private readonly orderService: OrderService) {
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly prisma: PrismaService,
+  ) {
     super();
     this.baseService = this.orderService;
   }
@@ -100,9 +104,17 @@ export class OrderController extends BaseController<
   @Put(':id/update-status')
   async updateStatus(
     @Param('id') id: string,
-    @Body() { status }: Pick<UpdateOrderDto, 'status'>,
+    @Body() { status, note }: Pick<UpdateOrderDto, 'status' | 'note'>,
   ): Promise<void> {
-    await this.orderService.bUpdate(id, { status });
+    const order = await this.orderService.bUpdate(id, { status });
+    await this.prisma.orderHistory.create({
+      data: {
+        order_id: order.id,
+        order_code: order.code,
+        action_status: status,
+        note,
+      },
+    });
   }
 
   @Get('/tracking-code/:code')

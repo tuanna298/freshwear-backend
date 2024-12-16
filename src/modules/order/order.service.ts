@@ -45,7 +45,10 @@ export class OrderService extends BaseService<
       data: {
         ...omit(dto, ['cartItems', 'transaction_info']),
         code: 'HD-' + Date.now(),
-        status: OrderStatus.PENDING,
+        status:
+          dto.method === PaymentMethod.TRANSFER
+            ? OrderStatus.PENDING
+            : OrderStatus.WAIT_FOR_CONFIRMATION,
         total_money,
         details: {
           create: dto.cartItems,
@@ -86,13 +89,21 @@ export class OrderService extends BaseService<
       return paymentUrl;
     } else {
       // handle COD
-      await this.prisma.orderHistory.create({
-        data: {
-          order_id: res.id,
-          order_code: res.code,
-          action_status: OrderStatus.PENDING,
-          note: 'Chờ xử lý',
-        },
+      await this.prisma.orderHistory.createMany({
+        data: [
+          {
+            order_id: res.id,
+            order_code: res.code,
+            action_status: OrderStatus.PENDING,
+            note: 'Chờ xử lý',
+          },
+          {
+            order_id: res.id,
+            order_code: res.code,
+            action_status: OrderStatus.WAIT_FOR_CONFIRMATION,
+            note: 'Xác nhận thanh toán khi nhận hàng',
+          },
+        ],
       });
 
       await this.prisma.payment.create({
