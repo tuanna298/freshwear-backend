@@ -1,7 +1,8 @@
 import { PrismaService } from '@/shared/prisma/prisma.service';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+@Injectable()
 export class AuthCleanUpJob {
   constructor(
     private readonly prisma: PrismaService,

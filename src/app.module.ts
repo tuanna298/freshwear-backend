@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -11,16 +11,17 @@ import { JwtAccessTokenGuard } from './modules/auth/guards/jwt-access-token.guar
 import { BrandModule } from './modules/brand/brand.module';
 import { ColorModule } from './modules/color/color.module';
 import { MaterialModule } from './modules/material/material.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { OrderModule } from './modules/order/order.module';
 import { ProductModule } from './modules/product/product.module';
 import { ReviewModule } from './modules/review/review.module';
 import { SizeModule } from './modules/size/size.module';
+import { StatisticModule } from './modules/statistic/statistic.module';
 import { UserModule } from './modules/user/user.module';
+import { LoggerModule } from './shared/logger/logger.module';
 import { MailerModule } from './shared/mailer/mailer.module';
 import { PrismaModule } from './shared/prisma/prisma.module';
 import { VnpayModule } from './shared/vnpay/vnpay.module';
-import { StatisticModule } from './modules/statistic/statistic.module';
-import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -42,11 +43,11 @@ import { NotificationModule } from './modules/notification/notification.module';
     VnpayModule,
     StatisticModule,
     NotificationModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    Logger,
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,

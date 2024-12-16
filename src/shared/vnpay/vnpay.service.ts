@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
 import { VnpayService as NestjsVnpayService } from 'nestjs-vnpay';
-import { ReturnQueryFromVNPay } from 'vnpay';
+import { ProductCode, ReturnQueryFromVNPay } from 'vnpay';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -12,6 +12,17 @@ export class VnpayService {
     private logger: Logger,
   ) {
     this.logger = new Logger(VnpayService.name);
+  }
+
+  async buildPaymentUrl(orderCode: string, total: number) {
+    return this.nestjsVnpayService.buildPaymentUrl({
+      vnp_Amount: total,
+      vnp_OrderInfo: orderCode,
+      vnp_TxnRef: Math.floor(Math.random() * 1000000).toString(),
+      vnp_IpAddr: '127.0.0.1',
+      vnp_ReturnUrl: 'http://localhost:3000/vnpay/callback',
+      vnp_OrderType: ProductCode.Other,
+    });
   }
 
   async handleVnpayCallback(query: ReturnQueryFromVNPay) {
@@ -50,6 +61,7 @@ export class VnpayService {
       await this.prisma.orderHistory.create({
         data: {
           order_id: order.id,
+          order_code: order.code,
           action_status: OrderStatus.WAIT_FOR_DELIVERY,
           note: 'Thanh toán qua VNPAY',
         },
@@ -109,6 +121,7 @@ export class VnpayService {
       await this.prisma.orderHistory.create({
         data: {
           order_id: order.id,
+          order_code: order.code,
           action_status: OrderStatus.PAYMENT_FAILED,
           note: 'Thanh toán thất bại: ' + note,
         },

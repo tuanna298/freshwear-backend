@@ -5,6 +5,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Put,
   Request,
@@ -53,6 +55,25 @@ export class AuthController {
   @Post('forgot-password/reset')
   async resetForgotPassword(@Body() dto: ResetPasswordDto) {
     return await this.authService.resetPassword(dto);
+  }
+
+  @Public()
+  @Post('refresh')
+  async refresh(@CurrentUser() user: User) {
+    const access_token = this.authService.generateAccessToken({
+      user_id: user.id,
+    });
+
+    return {
+      access_token,
+    };
+  }
+
+  @Public()
+  @Post('introspect')
+  @HttpCode(HttpStatus.OK)
+  async validateToken(@Body() { token }: { token: string }) {
+    await this.authService.validateToken(token);
   }
 
   // protected endpoints

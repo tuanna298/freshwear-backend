@@ -4,6 +4,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -17,7 +18,7 @@ import { RequestForgotPasswordDto } from './dtos/request-forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { SignUpDto } from './dtos/sign-up.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
-import { accessTokenPrivateKey } from './jwt.key';
+import { accessTokenPrivateKey, refreshTokenPrivateKey } from './jwt.key';
 import { TokenPayload } from './type';
 
 @Injectable()
@@ -34,11 +35,14 @@ export class AuthService {
 
   async signIn(user_id: string) {
     const access_token = this.generateAccessToken({ user_id });
+    const refresh_token = this.generateRefreshToken({ user_id });
+
     await this.userService.bUpdate(user_id, {
       last_login: new Date(),
     });
     return {
       access_token,
+      refresh_token,
     };
   }
 
@@ -242,10 +246,38 @@ export class AuthService {
     return user;
   }
 
+  async validateToken(token: string): Promise<void> {
+    try {
+      const decoded = this.jwtService.verify(token, {
+        algorithms: ['RS256'],
+        publicKey: accessTokenPrivateKey,
+      });
+
+      await this.userService.bFindFirstExists({
+        args: {
+          where: {
+            id: decoded.user_id,
+          },
+        },
+        mess_err: 'Xác thực không thành công',
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Token không hợp lệ: ' + error.message);
+    }
+  }
+
   generateAccessToken(payload: TokenPayload) {
     return this.jwtService.sign(payload, {
       algorithm: 'RS256',
       privateKey: accessTokenPrivateKey,
+      expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`,
+    });
+  }
+
+  generateRefreshToken(payload: TokenPayload) {
+    return this.jwtService.sign(payload, {
+      algorithm: 'RS256',
+      privateKey: refreshTokenPrivateKey,
       expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`,
     });
   }

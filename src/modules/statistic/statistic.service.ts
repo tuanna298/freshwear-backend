@@ -1,6 +1,6 @@
 import { PrismaService } from '@/shared/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { OrderStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { GrowthResponse } from './dtos/growth-response.dto';
 import { StatisticQueryDto } from './dtos/statistic-query.dto';
 import { Statistic, TrendingStat } from './interfaces';
@@ -91,59 +91,70 @@ export class StatisticService {
 
   private async getStatisticRevenueBetween(query: StatisticQueryDto) {
     const { start, end } = query;
-    return await this.prisma.$queryRaw<Statistic[]>`
+    const statistics = await this.prisma.$queryRaw<Statistic[]>`
       SELECT
         extract(epoch from date_trunc('day', created_at::timestamp)) AS date,
         SUM(total_money) AS value
       FROM
-        shop_order
+        shop_order o
       WHERE
-        status = ${Prisma.sql`${OrderStatus.COMPLETED}`} AND
-        created_at >= ${start} AND
-        created_at <= ${end}
+        o.status = 'COMPLETED' AND
+        o.created_at >= to_timestamp(${start}::bigint / 1000) AND
+        o.created_at <= to_timestamp(${end}::bigint / 1000)
       GROUP BY
         date
       ORDER BY
         date
     `;
+    return statistics.map((stat) => ({
+      ...stat,
+      value: Number(stat.value),
+    }));
   }
 
   private async getStatisticOrdersBetween(query: StatisticQueryDto) {
     const { start, end } = query;
-    return await this.prisma.$queryRaw<Statistic[]>`
+    const statistics = await this.prisma.$queryRaw<Statistic[]>`
       SELECT
         extract(epoch from date_trunc('day', created_at::timestamp)) AS date,
         COUNT(*) AS value
       FROM
-        shop_order
+        shop_order o
       WHERE
-        status = ${Prisma.sql`${OrderStatus.COMPLETED}`} AND
-        created_at >= ${start} AND
-        created_at <= ${end}
+        o.status = 'COMPLETED' AND
+        o.created_at >= to_timestamp(${start}::bigint / 1000) AND
+        o.created_at <= to_timestamp(${end}::bigint / 1000)
       GROUP BY
         date
       ORDER BY
         date
     `;
+    return statistics.map((stat) => ({
+      ...stat,
+      value: Number(stat.value),
+    }));
   }
 
   private async getStatisticUsersBetween(query: StatisticQueryDto) {
     const { start, end } = query;
-    return await this.prisma.$queryRaw<Statistic[]>`
+    const statistics = await this.prisma.$queryRaw<Statistic[]>`
       SELECT
         extract(epoch from date_trunc('day', created_at::timestamp)) AS date,
         COUNT(*) AS value
       FROM
-        shop_user
+        "user"
       WHERE
-        deleted = false AND
-        created_at >= ${start} AND
-        created_at <= ${end}
+        created_at >= to_timestamp(${start}::bigint / 1000) AND
+        created_at <= to_timestamp(${end}::bigint / 1000)
       GROUP BY
         date
       ORDER BY
         date
     `;
+    return statistics.map((stat) => ({
+      ...stat,
+      value: Number(stat.value),
+    }));
   }
 
   private async getStatisticTrendingBetween(query: StatisticQueryDto) {
@@ -159,7 +170,7 @@ export class StatisticService {
       JOIN
         shop_order o ON od.order_id = o.id
       WHERE
-        o.status = ${Prisma.sql`${OrderStatus.COMPLETED}`}
+        o.status = 'COMPLETED'
         AND o.created_at >= ${Prisma.sql`${start}`}
         AND o.created_at <= ${Prisma.sql`${end}`}
       GROUP BY

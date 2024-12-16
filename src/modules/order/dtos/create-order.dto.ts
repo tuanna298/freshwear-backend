@@ -31,7 +31,8 @@ export class CreateOrderDto {
   note?: string;
 
   @IsEnum(OrderStatus, { message: 'Trạng thái hoá đơn không hợp lệ.' })
-  status: OrderStatus;
+  @IsOptional()
+  status?: OrderStatus;
 
   @IsEnum(PaymentMethod, { message: 'Phương thức thanh toán không hợp lệ.' })
   method: PaymentMethod;

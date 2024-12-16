@@ -191,8 +191,14 @@ export abstract class BaseService<
     searchTerm?: string,
     searchFields?: (keyof Prisma.TypeMap['model'][T]['fields'])[],
   ) {
+    const querySearch = query?.['search'] || '';
+    delete query?.['search'];
+
     const searchConditions = searchFields.map((field) => ({
-      [field as string]: { contains: searchTerm || '', mode: 'insensitive' },
+      [field as string]: {
+        contains: searchTerm || querySearch || '',
+        mode: 'insensitive',
+      },
     }));
     return { AND: [{ ...query }, { OR: searchConditions }] };
   }

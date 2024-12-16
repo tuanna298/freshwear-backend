@@ -21,7 +21,7 @@ export class DailyStatisticUtil {
     const growth = this.calculateGrowth(initialRevenue, finalRevenue);
     const total = this.calculateTotal(statistics);
 
-    return new StatisticResponse(statistics, Math.round(growth), total);
+    return new StatisticResponse(statistics, Math.round(growth), Number(total));
   }
 
   static getDailyGrowth(statistics: Statistic[]): (GrowthResponse | null)[] {

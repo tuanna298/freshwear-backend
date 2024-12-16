@@ -1,9 +1,10 @@
 import { BaseController } from '@/common/base/base.controller.abstract';
+import { BaseQueryDto } from '@/common/base/dtos/base.query.dto';
 import { IBaseService } from '@/common/base/interfaces/base.service.interface';
 import { DefaultSort } from '@/common/base/types';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { Public } from '@/decorators/public.decorator';
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateOrderDto } from './dtos/create-order.dto';
@@ -111,5 +112,29 @@ export class OrderController extends BaseController<
   @Get('/tracking-code/:code')
   async trackingOrder(@Param('code') code: string) {
     return this.orderService.trackingOrder(code);
+  }
+
+  @Public()
+  @Get('/history')
+  async findAllOrderHistory(@Query() query: BaseQueryDto) {
+    const whereCondition = this.baseService.bGetWhereCondition(
+      query.where,
+      query.search,
+      [],
+    );
+    const sortCondition = this.baseService.bGetSortCondition(
+      query.orderBy,
+      this.DEFAULT_SORT_FIELD || {},
+    );
+
+    return await this.orderService.bFindOrderHistoryPagination(
+      {
+        ...query,
+        where: whereCondition,
+        orderBy: sortCondition,
+        select: query?.select,
+      },
+      [],
+    );
   }
 }

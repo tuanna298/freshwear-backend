@@ -1,7 +1,9 @@
 import { BaseService } from '@/common/base/base.service.abstract';
+import { BaseQueryDto } from '@/common/base/dtos/base.query.dto';
 import { OrderStatusLabel } from '@/common/constant';
 import { EmailService } from '@/shared/mailer/email.service';
 import { PrismaService } from '@/shared/prisma/prisma.service';
+import { VnpayService } from '@/shared/vnpay/vnpay.service';
 import { Injectable } from '@nestjs/common';
 import {
   Order,
@@ -11,9 +13,7 @@ import {
   Prisma,
   User,
 } from '@prisma/client';
-import { omit } from 'lodash';
-import { VnpayService } from 'nestjs-vnpay';
-import { ProductCode } from 'vnpay';
+import { isEmpty, omit, size, uniqBy } from 'lodash';
 import { CreateOrderDto } from './dtos/create-order.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 
@@ -47,11 +47,10 @@ export class OrderService extends BaseService<
       data: {
         ...omit(dto, ['cartItems', 'transaction_info']),
         code: 'HD-' + Date.now(),
-        user_id: user?.id,
         status:
           dto.method === PaymentMethod.TRANSFER
-            ? OrderStatus.PENDING
-            : OrderStatus.WAIT_FOR_CONFIRMATION,
+            ? OrderStatus.WAIT_FOR_CONFIRMATION
+            : OrderStatus.PENDING,
         total_money,
         details: {
           create: dto.cartItems,
@@ -60,11 +59,26 @@ export class OrderService extends BaseService<
       ...args,
     });
 
+    // Giảm số lượng sản phẩm
+    for (const item of dto.cartItems) {
+      await this.prisma.productDetail.update({
+        where: {
+          id: item.product_detail_id,
+        },
+        data: {
+          quantity: {
+            decrement: item.quantity,
+          },
+        },
+      });
+    }
+
     // handle vnPay
     if (dto.method === PaymentMethod.TRANSFER) {
       await this.prisma.orderHistory.create({
         data: {
           order_id: res.id,
+          order_code: res.code,
           action_status: OrderStatus.PENDING,
           note: 'Chờ thanh toán',
         },
@@ -78,20 +92,14 @@ export class OrderService extends BaseService<
           total: total_money,
         },
       });
-      return this.vnpayService.buildPaymentUrl({
-        vnp_Amount: total_money,
-        vnp_OrderInfo: res.code,
-        vnp_TxnRef: Math.floor(Math.random() * 1000000).toString(),
-        vnp_IpAddr: '127.0.0.1',
-        vnp_ReturnUrl: 'http://localhost:3000/vnpay/callback',
-        vnp_OrderType: ProductCode.Other,
-      });
+      return this.vnpayService.buildPaymentUrl(res.code, total_money);
     } else {
       // handle COD
       await this.prisma.orderHistory.create({
         data: {
           order_id: res.id,
-          action_status: OrderStatus.WAIT_FOR_CONFIRMATION,
+          order_code: res.code,
+          action_status: OrderStatus.PENDING,
           note: 'Chờ xử lý',
         },
       });
@@ -145,6 +153,7 @@ export class OrderService extends BaseService<
     await this.prisma.orderHistory.create({
       data: {
         order_id: id,
+        order_code: order.code,
         action_status: status,
         note,
       },
@@ -215,6 +224,54 @@ export class OrderService extends BaseService<
       context: {
         link: `http://localhost:5174/tracking-order/${order.code}`,
       },
+    });
+  }
+
+  async bFindOrderHistoryPagination(
+    {
+      page,
+      perPage,
+      orderBy,
+      select,
+      include,
+      where,
+      selected_ids = [],
+    }: BaseQueryDto,
+    exclude: (keyof Prisma.TypeMap['model']['OrderHistory']['fields'])[] = [],
+  ) {
+    let data_selected_ids = [];
+    const take = perPage;
+    const skip = perPage * (page - 1);
+    if (!isEmpty(selected_ids)) {
+      data_selected_ids = await this.prisma.orderHistory.findMany({
+        where: { id: { in: selected_ids } },
+        take,
+        skip,
+        select,
+        include,
+      } as any);
+    }
+    const [data, count] = await this.prisma.$transaction([
+      this.prisma.orderHistory.findMany({
+        where,
+        take: take - size(data_selected_ids),
+        skip,
+        orderBy,
+        select,
+        include,
+      } as any),
+      this.prisma.orderHistory.count({ where }),
+    ]);
+
+    const processed_data = uniqBy([...data_selected_ids, ...data], 'id').map(
+      (item) => omit(item, exclude),
+    );
+
+    return this.bCreatePageInfo({
+      data: processed_data,
+      total: count,
+      take,
+      skip,
     });
   }
 }

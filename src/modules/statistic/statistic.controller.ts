@@ -21,7 +21,7 @@ export class StatisticController {
     return this.statisticService.getStatisticOrders(query);
   }
 
-  @Get('/customers')
+  @Get('/users')
   async getStatisticCustomers(@Query() query: StatisticQueryDto) {
     return this.statisticService.getStatisticCustomers(query);
   }
