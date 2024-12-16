@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
+import { Response } from 'express';
 import { VnpayService as NestjsVnpayService } from 'nestjs-vnpay';
 import { ProductCode, ReturnQueryFromVNPay } from 'vnpay';
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,14 +19,15 @@ export class VnpayService {
     return this.nestjsVnpayService.buildPaymentUrl({
       vnp_Amount: total,
       vnp_OrderInfo: orderCode,
-      vnp_TxnRef: Math.floor(Math.random() * 1000000).toString(),
+      vnp_TxnRef: new Date().getTime().toString(),
       vnp_IpAddr: '127.0.0.1',
       vnp_ReturnUrl: 'http://localhost:3000/vnpay/callback',
       vnp_OrderType: ProductCode.Other,
+      vnp_BankCode: undefined,
     });
   }
 
-  async handleVnpayCallback(query: ReturnQueryFromVNPay) {
+  async handleVnpayCallback(query: ReturnQueryFromVNPay, res: Response) {
     try {
       const verify = await this.nestjsVnpayService.verifyReturnUrl(query);
       if (!verify.isVerified) {
@@ -48,7 +50,7 @@ export class VnpayService {
         create: {
           order_id: order.id,
           method: PaymentMethod.TRANSFER,
-          description: 'Thanh toán qua VNPAY',
+          description: 'Đã hanh toán qua VNPAY',
           status: PaymentStatus.PAID,
           transaction_code: String(verify.vnp_TransactionNo),
           total: order.total_money,
@@ -63,7 +65,7 @@ export class VnpayService {
           order_id: order.id,
           order_code: order.code,
           action_status: OrderStatus.WAIT_FOR_DELIVERY,
-          note: 'Thanh toán qua VNPAY',
+          note: 'Đã hanh toán qua VNPAY',
         },
       });
 
@@ -75,9 +77,14 @@ export class VnpayService {
           status: OrderStatus.WAIT_FOR_DELIVERY,
         },
       });
+
+      return res.redirect(
+        'http://localhost:5174/order-success?shouldClearCart=true',
+      );
     } catch (error) {
       this.logger.error('Error when handle vnpay callback: ', error);
       this.handlePaymentFailure(query.vnp_OrderInfo, error.message);
+      return res.redirect('http://localhost:5174/order-failed');
     }
   }
 

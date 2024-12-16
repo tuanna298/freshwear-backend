@@ -7,8 +7,8 @@ import { VnpayService } from './vnpay.service';
 @Module({
   imports: [
     NestjsVnpayModule.register({
-      tmnCode: '6ATWTPCI',
-      secureSecret: 'WNXETMCLUIGIDLQBYXZZSTVTPICCPNNO',
+      tmnCode: 'NNKBINLE',
+      secureSecret: '85M1VROVBMFMHRHCPR56II26KY2C8U8S',
       vnpayHost: 'https://sandbox.vnpayment.vn',
       testMode: true, // tùy chọn, ghi đè vnpayHost thành sandbox nếu là true
 

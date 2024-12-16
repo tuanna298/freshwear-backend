@@ -11,7 +11,6 @@ import {
   PaymentMethod,
   PaymentStatus,
   Prisma,
-  User,
 } from '@prisma/client';
 import { isEmpty, omit, size, uniqBy } from 'lodash';
 import { CreateOrderDto } from './dtos/create-order.dto';
@@ -33,7 +32,6 @@ export class OrderService extends BaseService<
 
   async create(
     dto: CreateOrderDto,
-    user: User,
     args?: Omit<
       Prisma.TypeMap['model']['Order']['operations']['create']['args'],
       'data'
@@ -47,10 +45,7 @@ export class OrderService extends BaseService<
       data: {
         ...omit(dto, ['cartItems', 'transaction_info']),
         code: 'HD-' + Date.now(),
-        status:
-          dto.method === PaymentMethod.TRANSFER
-            ? OrderStatus.WAIT_FOR_CONFIRMATION
-            : OrderStatus.PENDING,
+        status: OrderStatus.PENDING,
         total_money,
         details: {
           create: dto.cartItems,
@@ -83,16 +78,12 @@ export class OrderService extends BaseService<
           note: 'Chờ thanh toán',
         },
       });
-      await this.prisma.payment.create({
-        data: {
-          order_id: res.id,
-          description: 'Thanh toán qua VNPAY',
-          method: PaymentMethod.TRANSFER,
-          status: PaymentStatus.PENDING,
-          total: total_money,
-        },
-      });
-      return this.vnpayService.buildPaymentUrl(res.code, total_money);
+      const paymentUrl = await this.vnpayService.buildPaymentUrl(
+        res.code,
+        total_money,
+      );
+
+      return paymentUrl;
     } else {
       // handle COD
       await this.prisma.orderHistory.create({
