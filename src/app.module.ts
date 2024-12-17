@@ -23,6 +23,7 @@ import { LoggerModule } from './shared/logger/logger.module';
 import { MailerModule } from './shared/mailer/mailer.module';
 import { PrismaModule } from './shared/prisma/prisma.module';
 import { VnpayModule } from './shared/vnpay/vnpay.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { VnpayModule } from './shared/vnpay/vnpay.module';
     NotificationModule,
     LoggerModule,
     SseModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [

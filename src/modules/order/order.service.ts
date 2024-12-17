@@ -6,6 +6,7 @@ import { PrismaService } from '@/shared/prisma/prisma.service';
 import { VnpayService } from '@/shared/vnpay/vnpay.service';
 import { Injectable } from '@nestjs/common';
 import {
+  NotificationType,
   Order,
   OrderStatus,
   PaymentMethod,
@@ -13,6 +14,7 @@ import {
   Prisma,
 } from '@prisma/client';
 import { isEmpty, omit, size, uniqBy } from 'lodash';
+import { NotificationService } from '../notification/notification.service';
 import { CreateOrderDto } from './dtos/create-order.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 
@@ -26,6 +28,7 @@ export class OrderService extends BaseService<
     protected prisma: PrismaService,
     private readonly vnpayService: VnpayService,
     private readonly emailService: EmailService,
+    private readonly notificationService: NotificationService,
   ) {
     super(prisma, 'Order');
   }
@@ -59,7 +62,7 @@ export class OrderService extends BaseService<
 
     // Giảm số lượng sản phẩm
     for (const item of dto.cartItems) {
-      await this.prisma.productDetail.update({
+      const productDetail = await this.prisma.productDetail.update({
         where: {
           id: item.product_detail_id,
         },
@@ -69,6 +72,16 @@ export class OrderService extends BaseService<
           },
         },
       });
+
+      // Kiểm tra nếu số lượng sản phẩm sắp hết
+      if (productDetail.quantity <= 5) {
+        await this.notificationService.sendNotificationToAdmin({
+          content: `Sản phẩm ${productDetail.product_id} sắp hết hàng`,
+          type: NotificationType.PRODUCT_LOW_STOCK,
+          href: `http://localhost:5173/product/edit/${productDetail.product_id}`,
+          data: productDetail,
+        });
+      }
     }
 
     // handle vnPay
@@ -115,9 +128,16 @@ export class OrderService extends BaseService<
           total: total_money,
         },
       });
+      // gửi noti thông báo cho admin
+
+      await this.notificationService.sendNotificationToAdmin({
+        content: `Đơn hàng mới #${res.code} cần xử lý`,
+        type: NotificationType.ORDER_PLACED,
+        href: `http://localhost:5173/order/edit/${res.id}`,
+        data: res,
+      });
     }
 
-    // gửi noti thông báo cho admin
     return res || null;
   }
 

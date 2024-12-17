@@ -1,4 +1,5 @@
 import { MailerModule as DefaultMailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'path';
@@ -40,6 +41,7 @@ import { EmailService } from './email.service';
               __dirname,
               '../../../../src/shared/mailer/templates',
             ),
+            adapter: new HandlebarsAdapter(),
             options: {
               strict: true,
             },

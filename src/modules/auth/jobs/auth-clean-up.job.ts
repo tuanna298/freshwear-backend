@@ -25,6 +25,13 @@ export class AuthCleanUpJob {
           },
         },
       });
+      await tx.passwordResetToken.deleteMany({
+        where: {
+          expires_at: {
+            lt: new Date(),
+          },
+        },
+      });
     });
 
     this.logger.debug(

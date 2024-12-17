@@ -22,6 +22,7 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { SignUpDto } from './dtos/sign-up.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { UrlRoleGuard } from './guards/url-role-guard';
 
 @Controller('auth')
 export class AuthController {
@@ -39,7 +40,7 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(LocalAuthGuard, UrlRoleGuard)
   @Post('sign-in')
   async signIn(@CurrentUser() user: User) {
     return await this.authService.signIn(user.id);

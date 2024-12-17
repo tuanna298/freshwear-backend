@@ -5,7 +5,6 @@ import {
   IsEmail,
   IsEnum,
   IsOptional,
-  IsPhoneNumber,
   IsString,
   IsStrongPassword,
 } from 'class-validator';
@@ -61,7 +60,7 @@ export class CreateUserDto implements Prisma.UserCreateInput {
   @IsOptional()
   avatar?: string;
 
-  @IsPhoneNumber('VI', {
+  @IsString({
     message: 'Số điện thoại không hợp lệ',
   })
   @IsOptional()

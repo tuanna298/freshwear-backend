@@ -1,5 +1,11 @@
+import { NotificationService } from '@/modules/notification/notification.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
+import {
+  NotificationType,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+} from '@prisma/client';
 import { Response } from 'express';
 import { VnpayService as NestjsVnpayService } from 'nestjs-vnpay';
 import { ProductCode, ReturnQueryFromVNPay } from 'vnpay';
@@ -9,8 +15,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export class VnpayService {
   constructor(
     private readonly prisma: PrismaService,
-    private nestjsVnpayService: NestjsVnpayService,
-    private logger: Logger,
+    private readonly nestjsVnpayService: NestjsVnpayService,
+    private readonly notificationService: NotificationService,
+    private readonly logger: Logger,
   ) {
     this.logger = new Logger(VnpayService.name);
   }
@@ -76,6 +83,13 @@ export class VnpayService {
         data: {
           status: OrderStatus.WAIT_FOR_DELIVERY,
         },
+      });
+
+      await this.notificationService.sendNotificationToAdmin({
+        content: `Đơn hàng mới #${order.code} cần xử lý`,
+        type: NotificationType.ORDER_PLACED,
+        href: `http://localhost:5173/order/edit/${order.id}`,
+        data: order,
       });
 
       return res.redirect(

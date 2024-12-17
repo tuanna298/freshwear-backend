@@ -102,7 +102,7 @@ export class AuthService {
       );
     }
 
-    const is_matching = bcrypt.compare(current_password, user.password);
+    const is_matching = await bcrypt.compare(current_password, user.password);
 
     if (!is_matching) {
       throw new BadRequestException('Mật khẩu hiện tại không đúng');
@@ -159,6 +159,21 @@ export class AuthService {
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setHours(tokenExpiresAt.getHours() + 0.5); // expires in 30 minutes
 
+    // Kiểm tra xem token có tồn tại trước khi xóa
+    const tokenToDelete = await this.prisma.passwordResetToken.findFirst({
+      where: {
+        user_id: user.id,
+      },
+    });
+
+    if (tokenToDelete) {
+      await this.prisma.passwordResetToken.delete({
+        where: {
+          user_id: user.id,
+        },
+      });
+    }
+
     await this.prisma.passwordResetToken.create({
       data: {
         user_id: user.id,
@@ -169,11 +184,13 @@ export class AuthService {
   }
 
   async resetPassword({ token, new_password }: ResetPasswordDto) {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
     const user = await this.userService.bFindFirstExists({
       args: {
         where: {
           password_reset_token: {
-            token,
+            token: hashedToken,
           },
         },
       },
