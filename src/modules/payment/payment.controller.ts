@@ -16,7 +16,18 @@ export class PaymentController extends BaseController<'Payment', any, any>() {
   DEFAULT_SORT_FIELD: DefaultSort = {
     updated_at: 'desc',
   };
-  DEFAULT_SELECT: Prisma.PaymentSelect<DefaultArgs>;
+  DEFAULT_SELECT: Prisma.PaymentSelect<DefaultArgs> = {
+    id: true,
+    order_id: true,
+    method: true,
+    transaction_code: true,
+    total: true,
+    description: true,
+    status: true,
+    created_at: true,
+    updated_at: true,
+    order: true,
+  };
   DEFAULT_EXCLUDE: (keyof Prisma.PaymentFieldRefs)[];
 
   constructor(private readonly paymentService: PaymentService) {

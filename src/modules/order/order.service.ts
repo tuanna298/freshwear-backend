@@ -71,12 +71,17 @@ export class OrderService extends BaseService<
             decrement: item.quantity,
           },
         },
+        include: {
+          product: true,
+          color: true,
+          size: true,
+        },
       });
 
       // Kiểm tra nếu số lượng sản phẩm sắp hết
       if (productDetail.quantity <= 5) {
         await this.notificationService.sendNotificationToAdmin({
-          content: `Sản phẩm ${productDetail.product_id} sắp hết hàng`,
+          content: `${productDetail.product.code} - ${productDetail.color.name} / ${productDetail.size.name} sắp hết hàng`,
           type: NotificationType.PRODUCT_LOW_STOCK,
           href: `http://localhost:5173/product/edit/${productDetail.product_id}`,
           data: productDetail,

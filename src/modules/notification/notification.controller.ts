@@ -2,7 +2,7 @@ import { BaseController } from '@/common/base/base.controller.abstract';
 import { IBaseService } from '@/common/base/interfaces/base.service.interface';
 import { DefaultSort } from '@/common/base/types';
 import { PrismaService } from '@/shared/prisma/prisma.service';
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { NotificationService } from './notification.service';
@@ -28,7 +28,7 @@ export class NotificationController extends BaseController<
   }
 
   @Get('read/:id')
-  async readNotification(id: string) {
+  async readNotification(@Param('id') id: string) {
     return await this.prisma.notification.update({
       where: { id: parseInt(id) },
       data: { read: true },
