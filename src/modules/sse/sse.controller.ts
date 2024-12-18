@@ -15,7 +15,7 @@ export class SseController {
         const notifications = await this.prisma.notification.findMany({
           orderBy: [
             {
-              read: 'desc',
+              read: 'asc',
             },
             {
               created_at: 'asc',

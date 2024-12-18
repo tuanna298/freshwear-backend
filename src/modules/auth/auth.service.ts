@@ -82,9 +82,15 @@ export class AuthService {
     };
     const expires_at = new Date(decodedToken.exp * 1000);
 
-    await this.prisma.revokedToken.create({
-      data: {
+    await this.prisma.revokedToken.upsert({
+      where: {
         token: access_token,
+      },
+      create: {
+        token: access_token,
+        expires_at,
+      },
+      update: {
         expires_at,
       },
     });

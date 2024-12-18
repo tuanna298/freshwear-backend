@@ -1,6 +1,5 @@
 import { PrismaService } from '@/shared/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { GrowthResponse } from './dtos/growth-response.dto';
 import { StatisticQueryDto } from './dtos/statistic-query.dto';
 import { Statistic, TrendingStat } from './interfaces';
@@ -73,16 +72,20 @@ export class StatisticService {
     return DailyStatisticUtil.getDailyGrowth(statistics);
   }
 
-  async getTrendingProducts(query: StatisticQueryDto) {
+  async getTrendingProducts(query: string) {
     const trendingStatistics = await this.getStatisticTrendingBetween(query);
+
     const trendingProducts = await Promise.all(
       trendingStatistics.map(async (stat) => {
         const productDetail = await this.prisma.productDetail.findUnique({
           where: { id: stat.product_detail_id },
+          include: {
+            product: true,
+          },
         });
         return {
           ...productDetail,
-          sale_count: stat.total_quantity,
+          sale_count: Number(stat.total_quantity),
         };
       }),
     );
@@ -157,9 +160,10 @@ export class StatisticService {
     }));
   }
 
-  private async getStatisticTrendingBetween(query: StatisticQueryDto) {
-    const { start, end } = query;
-    return await this.prisma.$queryRaw<TrendingStat[]>`
+  private async getStatisticTrendingBetween(query: string) {
+    const { start, end } = JSON.parse(query);
+
+    const trendingStatistics = await this.prisma.$queryRaw<TrendingStat[]>`
       SELECT
         pd.id AS product_detail_id,
         SUM(od.quantity) AS total_quantity
@@ -170,14 +174,16 @@ export class StatisticService {
       JOIN
         shop_order o ON od.order_id = o.id
       WHERE
-        o.status = 'COMPLETED'
-        AND o.created_at >= ${Prisma.sql`${start}`}
-        AND o.created_at <= ${Prisma.sql`${end}`}
+        o.status = 'COMPLETED' AND
+        o.created_at >= to_timestamp(${start}::bigint / 1000) AND
+        o.created_at <= to_timestamp(${end}::bigint / 1000)
       GROUP BY
         pd.id
       ORDER BY
         total_quantity DESC
       LIMIT 5
     `;
+
+    return trendingStatistics;
   }
 }

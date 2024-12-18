@@ -27,7 +27,7 @@ export class StatisticController {
   }
 
   @Get('/trending')
-  async getTrendingProducts(@Query() query: StatisticQueryDto) {
-    return this.statisticService.getTrendingProducts(query);
+  async getTrendingProducts(@Query() query: { where: string }) {
+    return this.statisticService.getTrendingProducts(query.where);
   }
 }

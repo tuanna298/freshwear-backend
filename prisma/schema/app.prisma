@@ -210,7 +210,7 @@ model Review {
   id         String       @id @default(uuid())
   comment    String       @db.Text
   rating     Int          @default(1)
-  image      String       @db.Text
+  image      String?      @db.Text
   status     ReviewStatus @default(PENDING)
   product_id String
   user_id    String

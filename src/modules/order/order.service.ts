@@ -4,7 +4,7 @@ import { OrderStatusLabel } from '@/common/constant';
 import { EmailService } from '@/shared/mailer/email.service';
 import { PrismaService } from '@/shared/prisma/prisma.service';
 import { VnpayService } from '@/shared/vnpay/vnpay.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   NotificationType,
   Order,
@@ -29,8 +29,10 @@ export class OrderService extends BaseService<
     private readonly vnpayService: VnpayService,
     private readonly emailService: EmailService,
     private readonly notificationService: NotificationService,
+    private readonly logger: Logger,
   ) {
     super(prisma, 'Order');
+    this.logger = new Logger(OrderService.name);
   }
 
   async create(
@@ -212,8 +214,10 @@ export class OrderService extends BaseService<
         },
       });
     }
+    this.logger.log(`Order ${order.code} has been updated to ${status}`);
     // gửi mail thông báo cho user
-    await this.sendMailNotification(order.email, order);
+    this.sendMailNotification(order.email, order);
+    this.logger.log(`Mail has been sent to ${order.email}`);
   }
 
   async trackingOrder(code: string) {

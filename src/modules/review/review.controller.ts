@@ -1,8 +1,9 @@
 import { BaseController } from '@/common/base/base.controller.abstract';
 import { IBaseService } from '@/common/base/interfaces/base.service.interface';
 import { DefaultSort } from '@/common/base/types';
-import { Controller } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { CurrentUser } from '@/decorators/current-user.decorator';
+import { Body, Controller, Post } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateReviewDto } from './dtos/create-review.dto';
 import { UpdateReviewDto } from './dtos/update-review.dto';
@@ -25,5 +26,13 @@ export class ReviewController extends BaseController<
   constructor(private readonly reviewService: ReviewService) {
     super();
     this.baseService = this.reviewService;
+  }
+
+  @Post()
+  async create(
+    @Body() dto: CreateReviewDto,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    await this.reviewService.create(dto, user);
   }
 }

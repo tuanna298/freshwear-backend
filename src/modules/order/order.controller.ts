@@ -106,15 +106,7 @@ export class OrderController extends BaseController<
     @Param('id') id: string,
     @Body() { status, note }: Pick<UpdateOrderDto, 'status' | 'note'>,
   ): Promise<void> {
-    const order = await this.orderService.bUpdate(id, { status });
-    await this.prisma.orderHistory.create({
-      data: {
-        order_id: order.id,
-        order_code: order.code,
-        action_status: status,
-        note,
-      },
-    });
+    await this.orderService.updateStatus(id, status, note);
   }
 
   @Get('/tracking-code/:code')
