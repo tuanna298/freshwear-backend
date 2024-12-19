@@ -225,12 +225,15 @@ export class AuthService {
   }
 
   async sendForgotPasswordEmail(email: string, token: string) {
+    const url =
+      this.configService.get('FRONTEND_CLIENT_URL') || 'http://localhost:5174';
+
     await this.emailService.sendEmail({
       to: email,
       subject: 'Yêu cầu đặt lại mật khẩu',
       template: 'mail-verification',
       context: {
-        link: `http://localhost:5174/reset-password?token=${token}`,
+        link: `${url}/reset-password?token=${token}`,
       },
     });
   }

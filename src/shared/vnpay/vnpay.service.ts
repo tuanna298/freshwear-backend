@@ -1,5 +1,6 @@
 import { NotificationService } from '@/modules/notification/notification.service';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   NotificationType,
   OrderStatus,
@@ -18,23 +19,30 @@ export class VnpayService {
     private readonly nestjsVnpayService: NestjsVnpayService,
     private readonly notificationService: NotificationService,
     private readonly logger: Logger,
+    private readonly config: ConfigService,
   ) {
     this.logger = new Logger(VnpayService.name);
   }
 
   async buildPaymentUrl(orderCode: string, total: number) {
+    const url = this.config.get('BACKEND_URL') || 'http://localhost:3000';
     return this.nestjsVnpayService.buildPaymentUrl({
       vnp_Amount: total,
       vnp_OrderInfo: orderCode,
       vnp_TxnRef: new Date().getTime().toString(),
       vnp_IpAddr: '127.0.0.1',
-      vnp_ReturnUrl: 'http://localhost:3000/vnpay/callback',
+      vnp_ReturnUrl: `${url}/vnpay/callback`,
       vnp_OrderType: ProductCode.Other,
       vnp_BankCode: undefined,
     });
   }
 
   async handleVnpayCallback(query: ReturnQueryFromVNPay, res: Response) {
+    const adminUrl =
+      this.config.get('FRONTEND_ADMIN_URL') || 'http://localhost:5173';
+    const clientUrl =
+      this.config.get('FRONTEND_CLIENT_URL') || 'http://localhost:5174';
+
     try {
       const verify = await this.nestjsVnpayService.verifyReturnUrl(query);
       if (!verify.isVerified) {
@@ -88,17 +96,15 @@ export class VnpayService {
       await this.notificationService.sendNotificationToAdmin({
         content: `Đơn hàng mới #${order.code} cần xử lý`,
         type: NotificationType.ORDER_PLACED,
-        href: `http://localhost:5173/order/edit/${order.id}`,
+        href: `${adminUrl}/order/edit/${order.id}`,
         data: order,
       });
 
-      return res.redirect(
-        'http://localhost:5174/order-success?shouldClearCart=true',
-      );
+      return res.redirect(`${clientUrl}/order-success?shouldClearCart=true`);
     } catch (error) {
       this.logger.error('Error when handle vnpay callback: ', error);
       this.handlePaymentFailure(query.vnp_OrderInfo, error.message);
-      return res.redirect('http://localhost:5174/order-failed');
+      return res.redirect(`${clientUrl}/order-failed`);
     }
   }
 

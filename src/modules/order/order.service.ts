@@ -5,6 +5,7 @@ import { EmailService } from '@/shared/mailer/email.service';
 import { PrismaService } from '@/shared/prisma/prisma.service';
 import { VnpayService } from '@/shared/vnpay/vnpay.service';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   NotificationType,
   Order,
@@ -30,6 +31,7 @@ export class OrderService extends BaseService<
     private readonly emailService: EmailService,
     private readonly notificationService: NotificationService,
     private readonly logger: Logger,
+    private readonly config: ConfigService,
   ) {
     super(prisma, 'Order');
     this.logger = new Logger(OrderService.name);
@@ -42,6 +44,9 @@ export class OrderService extends BaseService<
       'data'
     >,
   ) {
+    const url =
+      this.config.get('FRONTEND_ADMIN_URL') || 'http://localhost:5173';
+
     const total_money = dto.cartItems.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0,
@@ -85,7 +90,7 @@ export class OrderService extends BaseService<
         await this.notificationService.sendNotificationToAdmin({
           content: `${productDetail.product.code} - ${productDetail.color.name} / ${productDetail.size.name} sắp hết hàng`,
           type: NotificationType.PRODUCT_LOW_STOCK,
-          href: `http://localhost:5173/product/edit/${productDetail.product_id}`,
+          href: `${url}/product/edit/${productDetail.product_id}`,
           data: productDetail,
         });
       }
@@ -140,7 +145,7 @@ export class OrderService extends BaseService<
       await this.notificationService.sendNotificationToAdmin({
         content: `Đơn hàng mới #${res.code} cần xử lý`,
         type: NotificationType.ORDER_PLACED,
-        href: `http://localhost:5173/order/edit/${res.id}`,
+        href: `${url}/order/edit/${res.id}`,
         data: res,
       });
     }
@@ -244,6 +249,9 @@ export class OrderService extends BaseService<
   }
 
   private async sendMailNotification(email: string, order: Order) {
+    const url =
+      this.config.get('FRONTEND_CLIENT_URL') || 'http://localhost:5174';
+
     await this.emailService.sendEmail({
       to: email,
       subject:
@@ -253,7 +261,7 @@ export class OrderService extends BaseService<
         ' đã được cập nhật trạng thái',
       template: 'mail-notification',
       context: {
-        link: `http://localhost:5174/tracking-order/${order.code}`,
+        link: `${url}/tracking-order/${order.code}`,
       },
     });
   }

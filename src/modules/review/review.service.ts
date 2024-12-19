@@ -1,6 +1,7 @@
 import { BaseService } from '@/common/base/base.service.abstract';
 import { PrismaService } from '@/shared/prisma/prisma.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NotificationType, Prisma, User } from '@prisma/client';
 import { NotificationService } from '../notification/notification.service';
 import { CreateReviewDto } from './dtos/create-review.dto';
@@ -15,6 +16,7 @@ export class ReviewService extends BaseService<
   constructor(
     protected prisma: PrismaService,
     private readonly notificationService: NotificationService,
+    private readonly config: ConfigService,
   ) {
     super(prisma, 'Review');
   }
@@ -59,10 +61,13 @@ export class ReviewService extends BaseService<
       },
     });
 
+    const url =
+      this.config.get('FRONTEND_CLIENT_URL') || 'http://localhost:5174';
+
     this.notificationService.sendNotificationToAdmin({
       content: `Sản phẩm ${res.product.code} có đánh giá mới`,
       type: NotificationType.ORDER_CHANGED,
-      href: `http://localhost:5174/product-detail/${dto.product_id}`,
+      href: `${url}/product-detail/${dto.product_id}`,
       data: res,
     });
 
