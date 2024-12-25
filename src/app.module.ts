@@ -13,6 +13,7 @@ import { ColorModule } from './modules/color/color.module';
 import { MaterialModule } from './modules/material/material.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OrderModule } from './modules/order/order.module';
+import { PaymentModule } from './modules/payment/payment.module';
 import { ProductModule } from './modules/product/product.module';
 import { ReviewModule } from './modules/review/review.module';
 import { SizeModule } from './modules/size/size.module';
@@ -23,7 +24,6 @@ import { LoggerModule } from './shared/logger/logger.module';
 import { MailerModule } from './shared/mailer/mailer.module';
 import { PrismaModule } from './shared/prisma/prisma.module';
 import { VnpayModule } from './shared/vnpay/vnpay.module';
-import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [

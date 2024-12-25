@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    container_name: fw_db
+    environment:
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_URI=${POSTGRES_URI}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - db
+    restart: 'unless-stopped'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -d postgres']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  api_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fw_api_service
+    ports:
+      - '3000:3000'
+    environment:
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_URI=postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
+    env_file:
+      - .env
+    networks:
+      - db
+networks:
+  db:
+    driver: bridge
+
+volumes:
+  db-data:
